@@ -1,0 +1,44 @@
+version: '3'
+services:
+  telconet-postgres:
+    image: "postgres:9.6-alpine"
+    container_name: telconet-postgres
+    #Creación de volumen de almacenamiento para la base de datos
+    volumes:
+      - telconet-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432 # Enrutar puerto 5432 del contenedor al puerto de la máquina host
+    environment:
+      - POSTGRES_DB=telconet
+      - POSTGRES_USER=telconet
+      - POSTGRES_PASSWORD=telconet
+
+  #Aplicación Back-end
+  telconet-app:
+    #El archivo Dockerfile del cual se va a crear la imagen para lanzar el contenedor de la aplicación
+    build: ./backend
+    container_name: telconet-app
+
+    #Environment variables for Spring Boot Application.
+    environment:
+      - DB_SERVER=telconet-postgres
+      - POSTGRES_DB=telconet
+      - POSTGRES_USER=telconet
+      - POSTGRES_PASSWORD=telconet
+    ports:
+      - 8080:8080  # Enrutar puerto del contenedor al puerto de la máquina host 
+    links:
+      - telconet-postgres
+
+  #Aplicación Front-end
+  telconet-front:
+    build: ./frontend
+    container_name: telconet-front
+    ports:
+      - 4200:80
+    links:
+      - telconet-app
+
+#Volumen de la base de datos
+volumes:
+  telconet-data:
